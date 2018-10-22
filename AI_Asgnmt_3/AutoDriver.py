@@ -22,6 +22,8 @@ signal.signal(signal.SIGINT, signal_handler)
 sys.tracebacklimit = 5
 
 def clear():
+	print "\n\n\n"
+	return
 	if os.name == 'nt': 
 		_ = os.system('cls') 
 	else:
@@ -61,14 +63,11 @@ def GamePlay(g,SearchAlgorithm,diff):
 		if str((gameState.__hash__(),playerId)) not in visited:
 			visited.add(str((gameState,playerId)))
 			score1,score2,t1,t2 = Util(g.getCurState().board)
-			gameVal = 0
-			if playerId == 1:
-				gameVal = (2*score1 - 34*score2 + 5*t1 - 13*t2
-			else:
-				gameVal = 2*score2- 34*score1+ 5*t2 - 13*t1
-			print "Current Utility Value : ",(score1,score2,t1,t2,gameVal)
+			gameVal1 = 2*score1 - 34*score2 + 5*t1 - 13*t2
+			gameVal2 = 2*score2 - 34*score1 + 5*t2 - 13*t1
+			print "Current Utility Value : ",(score1,score2,t1,t2,gameVal1,gameVal2)
 			g.Action = None
-			winsound.Beep(2500, 500)
+			#winsound.Beep(2500, 500)
 			if playerId == 2:
 				g.setPlayer(2)
 				g.activate(-1)
@@ -87,11 +86,8 @@ def GamePlay(g,SearchAlgorithm,diff):
 				g.activate(1)
 				action = None
 				
-				input = raw_input('Done?')
-				action = g.getAction()
-				
-				# action,results = sa2.Decision(gameState,playerId)
-				# g.move(action)
+				action,results = sa2.Decision(gameState,playerId)
+				g.move(action)
 				
 				g.activate(-1)
 			gameState = g.curState		
@@ -104,6 +100,7 @@ def GamePlay(g,SearchAlgorithm,diff):
 					print "Player : ",playerId," takes coin..."
 			if len(forfeit)>4 and forfeit[-1]>0 and forfeit[-3]>0 and forfeit[-1]==forfeit[-3]:
 				print "Player : ",forfeit[-1]," forfeits...\n\n\n"
+				endGame = True
 				break
 			playerId = sa.opposite(playerId)
 		else: #Player 1 i.e. user can intentionally repeat a state to declare win or draw.
@@ -117,6 +114,7 @@ def GamePlay(g,SearchAlgorithm,diff):
 				print "Player 2 Wins."
 			else:
 				print "The game ended in a Stale-Mate situation."
+			endGame = True
 			break
 	if not endGame:
 		g.activate(-1)
@@ -139,7 +137,8 @@ def GameDriver():
 	#### M:  Medium Mode : Depth is 6 for Minimax and 6 for AlphaBeta     ####
 	#### H : Hard Mode : Depth is 8 for Minimax and 8 for AlphaBeta       ####
 	##########################################################################
-	while True:
+	lst = [1,2,1,3,4,5]
+	for args in xrange(6):
 		clear()
 		print "******************************************************************"
 		print "****************** WELCOME TO HEXERS : THE GAME ******************"
@@ -151,7 +150,8 @@ def GameDriver():
 		print "<4> SHOW RESULTS R1 THROUGH R12."
 		print "<5> EXIT THE PROGRAM."
 		print "******************************************************************"
-		option = raw_input("Option Entry : ")
+		option = str(lst[args])#raw_input("Option Entry : ")
+		print lst[args]
 		print "******************************************************************"
 		if option == "1":
 			if g!=None:
@@ -171,7 +171,7 @@ def GameDriver():
 				lst.append(2)
 				numNodes,MemoryOfNode,MaxRecurse,nodesPerMicroSecond,timeElapsed = GamePlay(g,Minimax,Mode)
 				results = [numNodes,MemoryOfNode,MaxRecurse,timeElapsed,nodesPerMicroSecond]
-				__replay__ = raw_input("Would you like to play another game [Y] or view results [R] or exit [N] :   ")
+				__replay__ = "Y"#raw_input("Would you like to play another game [Y] or view results [R] or exit [N] :   ")
 				if __replay__ == "N":
 					print "You've chosen to exit the game."
 					clear()
@@ -199,18 +199,19 @@ def GameDriver():
 				print "Please initialize a new board."
 				if g!=None:
 					g.exit()
-			elif len(results) < 5:
-				print "Please play a game with Minimax algorithm first."
-				if g!=None:
-					g.exit()
-					g = None
+			# elif len(results) < 5:
+				# print "Please play a game with Minimax algorithm first."
+				# if g!=None:
+					# g.exit()
+					# g = None
 			else:
 				lst.append(3)
 				numNodes,MemoryOfNode,MaxRecurse,nodesPerMicroSecond,timeElapsed = GamePlay(g,AlphaBeta,Mode)
 				results.append(numNodes)
-				results.append((results[0]-results[5])/results[0])
+				results.append((results[0]-results[5])*1.0/results[0])
 				results.append(timeElapsed)
-				__replay__ = raw_input("Would you like to play another game [Y] or view results [R] or exit [N] :   ")
+				print results
+				__replay__ = "Y"#raw_input("Would you like to play another game [Y] or view results [R] or exit [N] :   ")
 				if __replay__ == "N":
 					print "You've chosen to exit the game."
 					clear()

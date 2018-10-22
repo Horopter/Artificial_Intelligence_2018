@@ -11,15 +11,12 @@ import time
 
 class GamePlan:
 	def isValid(self,pos,size):
-		xlim = size[0]
-		ylim = size[1]
-		x,y = pos
-		return x>-1 and y>-1 and x<xlim and y<ylim
+		return doesExist(pos,size)
 		
 	def boost(self,node):
 		if node.coinCount <= 6:
 			#There will be a lot many moves before forfeit. This will boost intelligence to counter delay effectively.
-			self.depth = 9
+			self.depth = 5
 	
 	def gameStatus(self,state):
 		node = Node(state, None, None, 0, 0, 1, None, None)
@@ -102,11 +99,11 @@ class GamePlan:
 		
 	def Utility(self,node):
 		if node.utility is None:
-			score1,score2 = Util(node.state.board)
+			score1,score2,t1,t2 = Util(node.state.board)
 			if self.MAXIMIZER == 1:
-				return 2*score1 - 10*score2
+				return (2*score1 - 34*score2 + 5*t1 - 13*t2)
 			elif self.MAXIMIZER == 2:
-				return 2*score2 - 10*score1
+				return (2*score2 - 34*score1 + 5*t2 - 13*t1)
 		
 	def move(self,board,action):
 		player,init,direction,type = action
@@ -221,11 +218,11 @@ class Minimax(GamePlan):
 
 	def __init__(self,difficulty):
 		if difficulty == 'E':
-			self.depth = 4
+			self.depth = 3
 		elif difficulty == 'M':
-			self.depth = 6
+			self.depth = 5
 		elif difficulty == 'H':
-			self.depth = 8
+			self.depth = 7
 		GamePlan.__init__(self)
 		
 class AlphaBeta(GamePlan):
@@ -250,7 +247,7 @@ class AlphaBeta(GamePlan):
 		# printAction(n,v)
 		self.endTime = time.time()
 		
-		print "Max Util Value : ",v
+		# print "Max Util Value : ",v
 		
 		#Returning Values
 		if n!=None:
@@ -314,11 +311,11 @@ class AlphaBeta(GamePlan):
 
 	def __init__(self,difficulty):
 		if difficulty == 'E':
-			self.depth = 4
+			self.depth = 3
 		elif difficulty == 'M':
-			self.depth = 6
+			self.depth = 5
 		elif difficulty == 'H':
-			self.depth = 8
+			self.depth = 7
 		GamePlan.__init__(self)
 			
 def ApiDriver(Algorithm,difficulty,start):

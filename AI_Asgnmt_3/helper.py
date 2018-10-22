@@ -69,24 +69,55 @@ def writeBoard(board,size):
 			print board[i][j]," ",
 		print
 				
+# def Util(board):
+	# cnt13,cnt11,cnt23,cnt21 = 0,0,0,0
+	# size = (len(board),len(board[0]))
+	# for i in range(size[0]):
+		# for j in range(size[1]):
+			# if board[i][j] == 1:
+				# if count(board,i,j,size)==3:
+					# cnt13 += 3
+				# else:
+					# cnt11 += 1
+			# elif board[i][j] == 2:
+				# if count(board,i,j,size)==3:
+					# cnt23 += 3
+				# else:
+					# cnt21 += 1
+	# score1,score2 = (cnt13+cnt11),(cnt23+cnt21)
+	# return score1,score2
+
+def doesExist(pos,size):
+	xlim = size[0]
+	ylim = size[1]
+	x,y = pos
+	return x>-1 and y>-1 and x<xlim and y<ylim
+	
+def takeOver(board,x,y,P,O):
+	lst = [(-1,1),(0,2),(1,1),(1,-1),(0,-2),(-1,-1)]
+	cnt = 0
+	if board[x][y] == P:
+		m,n = len(board),len(board[0])
+		for i in range(m):
+			for j in range(n):
+				if doesExist((x,y),(m,n)) and doesExist((x+2*i,y+2*j),(m,n)) and board[x+2*i][y+2*j] == 0 and board[x+i][y+j] == O: #Attacking Position
+					cnt += 1
+	return cnt
+	
 def Util(board):
-	cnt13,cnt11,cnt23,cnt21 = 0,0,0,0
+	cnt13,cnt11,cnt23,cnt21,to12,to21 = 0,0,0,0,0,0
 	size = (len(board),len(board[0]))
 	for i in range(size[0]):
 		for j in range(size[1]):
 			if board[i][j] == 1:
-				if count(board,i,j,size)==3:
-					cnt13 += 3
-				else:
-					cnt11 += 1
+				cnt11 += 1
 			elif board[i][j] == 2:
-				if count(board,i,j,size)==3:
-					cnt23 += 3
-				else:
-					cnt21 += 1
+				cnt21 += 1
+			to12 += takeOver(board,i,j,1,2)
+			to21 += takeOver(board,i,j,2,1)
 	score1,score2 = (cnt13+cnt11),(cnt23+cnt21)
-	return score1,score2
-	
+	return score1,score2,to12,to21
+
 def printAction(node,value):
 	if node is not None and node.utility == value:
 		print "Action : ",node.action," with a value of ",value

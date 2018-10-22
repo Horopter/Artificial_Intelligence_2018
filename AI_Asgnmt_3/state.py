@@ -62,6 +62,7 @@ class Node:
 		self.player = player
 		self.utility = utility
 		self.numChildren = numChildren
+				
 		if self.state:
 			self._hash_ = state.__hash__()
 			

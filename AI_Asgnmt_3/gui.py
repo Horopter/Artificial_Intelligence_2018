@@ -78,7 +78,7 @@ class GUI:
 		return self.Action
 		
 	def setCurState(self,state):
-		self.curState = state
+		self.curState = copy.deepcopy(state)
 		self.bsize = self.curState.size
 		
 	def getCurState(self):
