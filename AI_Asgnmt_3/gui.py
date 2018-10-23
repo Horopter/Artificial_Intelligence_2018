@@ -61,6 +61,8 @@ class GUI:
 		self.aux = []
 		self.nextButton = None
 		
+		self.root.attributes("-topmost", True)
+		
 	def doNothing(self):
 		return
 	

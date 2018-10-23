@@ -131,14 +131,14 @@ def GameDriver():
 	gameState = State(genInitBoard(size))
 	lst = []
 	results = []
-	Mode = 'E' #Didn't provide user interface for this for easy evaluation purposes.
+	Mode = 'M' #Didn't provide user interface for this for easy evaluation purposes.
 	##########################################################################
 	#### E : Easy Mode : Depth is 4 for Minimax and 4 for AlphaBeta       ####
 	#### M:  Medium Mode : Depth is 6 for Minimax and 6 for AlphaBeta     ####
 	#### H : Hard Mode : Depth is 8 for Minimax and 8 for AlphaBeta       ####
 	##########################################################################
-	lst = [1,2,1,3,4,5]
-	for args in xrange(6):
+	lst = [1,3,1,3,1,3,5]
+	for args in xrange(11):
 		clear()
 		print "******************************************************************"
 		print "****************** WELCOME TO HEXERS : THE GAME ******************"
@@ -207,10 +207,10 @@ def GameDriver():
 			else:
 				lst.append(3)
 				numNodes,MemoryOfNode,MaxRecurse,nodesPerMicroSecond,timeElapsed = GamePlay(g,AlphaBeta,Mode)
-				results.append(numNodes)
-				results.append((results[0]-results[5])*1.0/results[0])
-				results.append(timeElapsed)
-				print results
+				# results.append(numNodes)
+				# results.append((results[0]-results[5])*1.0/results[0])
+				# results.append(timeElapsed)
+				# print results
 				__replay__ = "Y"#raw_input("Would you like to play another game [Y] or view results [R] or exit [N] :   ")
 				if __replay__ == "N":
 					print "You've chosen to exit the game."
