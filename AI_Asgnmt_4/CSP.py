@@ -21,9 +21,9 @@ class Query(object):
 	def declCon(self, con, vars=None):
 		self.Cons.append((con, vars))
 
-	def getSol(self,valueOrder):
+	def getSol(self,valueOrder,forwardCheck, constraintProp):
 		doms, cons, hcons = self.getParams()
-		return self.Algorithm.getSol(doms, cons, hcons, valueOrder)
+		return self.Algorithm.getSol(doms, cons, hcons, valueOrder, forwardCheck, constraintProp)
 
 	def getParams(self):
 		#Set dom
@@ -45,10 +45,7 @@ class Query(object):
 		return doms, cons, hcons
 
 class RBT():
-	def __init__(self, fc=True):
-		self.fc = fc
-
-	def backtrack(self, sols, doms, hcons,asgnmts, multiple=False, valueOrder=False, constraintProp=False):
+	def backtrack(self, sols, doms, hcons,asgnmts, multiple, valueOrder, forwardCheck, constraintProp):
 		seq = [(-len(hcons[var]),len(doms[var]), var) for var in doms]
 		if valueOrder:
 			seq.sort()
@@ -57,23 +54,19 @@ class RBT():
 			if tuplet[-1] not in asgnmts:
 				break
 		else:
-			sols.append(copy.deepcopy(asgnmts))
+			sols.append(asgnmts.copy())
 			return sols
 
 		var = tuplet[-1]
 		asgnmts[var] = None
-
-		fc = self.fc
 		
-		if fc:
+		if forwardCheck:
 			hdoms = [doms[x] for x in doms if x not in asgnmts]
 		else:
 			hdoms = None
 
 		for val in doms[var]:
 			asgnmts[var] = val
-			if constraintProp:
-				doms[var] = Domain([])
 			if hdoms:
 				for dom in hdoms:
 					dom.add()
@@ -81,15 +74,16 @@ class RBT():
 				if not con(vars, doms, asgnmts,hdoms):
 					break
 			else:
-				# print "Assignment :",asgnmts
-				constraintProp = False
+				# print "Assignment : ",asgnmts
 				if constraintProp:
 					y = self.ac3(doms,hcons,asgnmts)
 					if y is not None:
 						d,h,a = y
-						self.backtrack(sols, d, h ,a, multiple, valueOrder, constraintProp)
+						self.backtrack(sols, d, h ,a, multiple, valueOrder, forwardCheck, True)
+					elif y is False:
+						return sols
 				else:
-					self.backtrack(sols, doms, hcons ,asgnmts, multiple, valueOrder, False)
+					self.backtrack(sols,doms,hcons,asgnmts, multiple, valueOrder, forwardCheck, True)
 				if sols and not multiple:
 					return sols
 			if hdoms:
@@ -98,17 +92,14 @@ class RBT():
 		del asgnmts[var]
 		return sols
 
-	def getSol(self, doms, cons, hcons, valueOrder):
-		self.ac3(doms,hcons,{})
-		sols = self.backtrack([], doms, hcons,{}, False, valueOrder, False)
+	def getSol(self, doms, cons, hcons, valueOrder, forwardCheck, constraintProp):
+		sols = self.backtrack([], doms, hcons,{}, False, valueOrder, forwardCheck, constraintProp)
 		return sols or None
 		
 	def remove_inconsistent_values(self, xi, xj, domains, asgnmts):
 		removed = False
 		for x in domains[xi]:
 			if len(domains[xj]) == 1 and x in domains[xj]:
-				# print "Conflict : ",xi,xj
-				# print "Domain : ",domains
 				l = list(domains[xi])
 				l.remove(x)
 				domains[xi] = Domain(l)
@@ -117,13 +108,15 @@ class RBT():
 				removed = True
 		return removed
 
-	def ac3(self, domains, hcons, asgnmts):
-		domains,hcons,asgnmts = copy.deepcopy(domains),copy.deepcopy(hcons),copy.deepcopy(asgnmts)
+	def eliminate(self,domains,asgnmts):
 		for x in domains:
 			for y in asgnmts:
 				if asgnmts[y] in domains[x]:
 					domains[x].remove(asgnmts[y])
 					
+	def ac3(self, domains, hcons, asgnmts):
+		domains,hcons,asgnmts = copy.deepcopy(domains),copy.deepcopy(hcons),copy.deepcopy(asgnmts)
+		self.eliminate(domains,hcons)	
 		queue = []
 		for xi in domains:
 			for xj in hcons[xi]:
@@ -131,7 +124,14 @@ class RBT():
 					for xk in xj[1]:
 						if xi!=xk and (xi,xk) not in queue:
 							queue.append((xk,xi))
-							
+				
+				elif isinstance(xj[0],SumConstraint):
+					s = 0
+					for xk in xj[1]:
+						if xk in asgnmts:
+							s += asgnmts[xk]
+							if s > xj[0].sum:
+								return False
 		while len(queue):
 			xi, xj = queue.pop(0)
 			if self.remove_inconsistent_values(xi, xj, domains, asgnmts):
@@ -196,20 +196,20 @@ class SumConstraint():
 	def __init__(self, sum):
 		self.sum = sum
 
-	def __call__(self, vars, doms, ass, fc=False):
+	def __call__(self, vars, doms, asgnmts, fc=False):
 		sum = self.sum
 		s = 0
 		incomplete = False
 		for var in vars:
-			if var in ass:
-				s += ass[var]
+			if var in asgnmts:
+				s += asgnmts[var]
 			else:
 				incomplete = True
 		if s > sum:
 			return False
 		if fc and incomplete:
 			for var in vars:
-				if var not in ass:
+				if var not in asgnmts:
 					dom = doms[var]
 					for val in dom[:]:
 						if s + val > sum:
@@ -237,11 +237,12 @@ def MagicSquare(num,valueOrder=True):
 		csp.declCon(SumConstraint(reqSum),[row * num + i for i in range(num)])
 	for col in range(num):
 		csp.declCon(SumConstraint(reqSum),[col + num * i for i in range(num)])
-	sols = csp.getSol(valueOrder)
+	valueOrder,forwardCheck,constraintProp = True,True,True
+	sols = csp.getSol(valueOrder,forwardCheck,constraintProp)
 	end = time.time()
 	print sols
 	print "Time Taken : ",end-start
 	
 if __name__ == '__main__':
-	for i in range(3,5):
+	for i in range(1,6):
 		MagicSquare(i)
