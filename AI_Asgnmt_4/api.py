@@ -1,6 +1,15 @@
+#*************************************
+#Author : Santosh Kumar Desai
+#ID : 2017H1030130P
+#*************************************
+
+
 import random
 import copy
 import time
+import sys
+import math
+from helper import *
 
 class Query(object):
 	def __init__(self):
@@ -21,9 +30,9 @@ class Query(object):
 	def declCon(self, con, vars=None):
 		self.Cons.append((con, vars))
 
-	def getSol(self,valueOrder,forwardCheck, constraintProp):
+	def getSol(self,valueOrder,forwardCheck, constraintProp,nodeSize,numNodes,curDepth,maxDepth):
 		doms, cons, hcons = self.getParams()
-		return self.Algorithm.getSol(doms, cons, hcons, valueOrder, forwardCheck, constraintProp)
+		return self.Algorithm.getSol(doms, cons, hcons, valueOrder, forwardCheck, constraintProp, nodeSize,numNodes,curDepth,maxDepth)
 
 	def getParams(self):
 		#Set dom
@@ -45,10 +54,31 @@ class Query(object):
 		return doms, cons, hcons
 
 class RBT():
-	def backtrack(self, sols, doms, hcons,asgnmts, multiple, valueOrder, forwardCheck, constraintProp):
-		seq = [(-len(hcons[var]),len(doms[var]), var) for var in doms]
-		if valueOrder:
-			seq.sort()
+	def backtrack(self, sols, doms, hcons,asgnmts, multiple, valueOrder, forwardCheck, constraintProp, nodeSize, numNodes, curDepth, maxDepth):
+		
+		numNodes[0] += 1
+		nodeSize[0] = max(nodeSize[0],sys.getsizeof(sols)+sys.getsizeof(doms)+sys.getsizeof(hcons)+sys.getsizeof(asgnmts))
+		maxDepth[0] = max(maxDepth[0],curDepth)
+		seq = []
+		
+		if valueOrder == None:
+			sqdct = {}
+			for var in doms:
+				sqdct[var] = (-len(hcons[var]),len(doms[var]), var)
+			num = int(math.sqrt(len(doms)))
+			sq = getSequence(num)
+			seq = []
+			for i in sq:
+				seq.append(sqdct[i])
+				
+		else:
+			seq = [(-len(hcons[var]),len(doms[var]), var) for var in doms]
+			if valueOrder == True:
+				seq.sort()
+			
+		for con, vars in hcons[var]:
+			if not con(vars, doms, asgnmts,None):
+				break
 
 		for tuplet in seq:
 			if tuplet[-1] not in asgnmts:
@@ -79,11 +109,11 @@ class RBT():
 					y = self.ac3(doms,hcons,asgnmts)
 					if y is not None:
 						d,h,a = y
-						self.backtrack(sols, d, h ,a, multiple, valueOrder, forwardCheck, True)
+						self.backtrack(sols, d, h ,a, multiple, valueOrder, forwardCheck, constraintProp,nodeSize, numNodes, curDepth+1 , maxDepth)
 					elif y is False:
 						return sols
 				else:
-					self.backtrack(sols,doms,hcons,asgnmts, multiple, valueOrder, forwardCheck, True)
+					self.backtrack(sols,doms,hcons,asgnmts, multiple, valueOrder, forwardCheck, constraintProp, nodeSize, numNodes, curDepth+1 , maxDepth)
 				if sols and not multiple:
 					return sols
 			if hdoms:
@@ -92,11 +122,11 @@ class RBT():
 		del asgnmts[var]
 		return sols
 
-	def getSol(self, doms, cons, hcons, valueOrder, forwardCheck, constraintProp):
-		sols = self.backtrack([], doms, hcons,{}, False, valueOrder, forwardCheck, constraintProp)
+	def getSol(self, doms, cons, hcons, valueOrder, forwardCheck, constraintProp, nodeSize, numNodes, curDepth, maxDepth):
+		sols = self.backtrack([], doms, hcons,{}, False, valueOrder, forwardCheck, constraintProp, nodeSize, numNodes, curDepth, maxDepth)
 		return sols or None
 		
-	def remove_inconsistent_values(self, xi, xj, domains, asgnmts):
+	def rem_inconsistency(self, xi, xj, domains, asgnmts):
 		removed = False
 		for x in domains[xi]:
 			if len(domains[xj]) == 1 and x in domains[xj]:
@@ -134,7 +164,7 @@ class RBT():
 								return False
 		while len(queue):
 			xi, xj = queue.pop(0)
-			if self.remove_inconsistent_values(xi, xj, domains, asgnmts):
+			if self.rem_inconsistency(xi, xj, domains, asgnmts):
 				if not domains[xi]:
 					return None
 				for xj in hcons[xi]:
@@ -221,7 +251,7 @@ class SumConstraint():
 		else:
 			return s == sum		
 
-def MagicSquare(num,valueOrder=True):
+def MagicSquare(num,valueOrder, forwardCheck, constraintProp):
 	start = time.time()
 	sq = num*num
 	reqSum = num*(num*num+1)/2
@@ -237,12 +267,13 @@ def MagicSquare(num,valueOrder=True):
 		csp.declCon(SumConstraint(reqSum),[row * num + i for i in range(num)])
 	for col in range(num):
 		csp.declCon(SumConstraint(reqSum),[col + num * i for i in range(num)])
-	valueOrder,forwardCheck,constraintProp = True,True,True
-	sols = csp.getSol(valueOrder,forwardCheck,constraintProp)
+	curDepth = 0
+	nodeSize,numNodes,maxDepth = [0],[0],[0]
+	sols = csp.getSol(valueOrder,forwardCheck,constraintProp,nodeSize,numNodes,curDepth,maxDepth)
 	end = time.time()
-	print sols
-	print "Time Taken : ",end-start
+	return (sols,nodeSize,numNodes,maxDepth,end-start)
 	
 if __name__ == '__main__':
+	valueOrder, forwardCheck, constraintProp = True,True,False
 	for i in range(1,6):
-		MagicSquare(i)
+		MagicSquare(i,valueOrder, forwardCheck, constraintProp)
