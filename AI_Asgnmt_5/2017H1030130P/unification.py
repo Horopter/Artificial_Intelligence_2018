@@ -1,3 +1,8 @@
+#*************************************
+#Author : Santosh Kumar Desai
+#ID : 2017H1030130P
+#*************************************
+
 from helper import *
 
 def Unify(x, y, t={}):
@@ -34,31 +39,29 @@ def UnifyVar(var, x, t):
 		return s2
 
 
-def subst(a, b):
+def plugin(a, b):
 	if isinstance(b, list):
-		return [subst(a, instx) for instx in b]
+		return [plugin(a, instx) for instx in b]
 	elif isinstance(b, tuple):
-		return tuple([subst(a, instx) for instx in b])
+		return tuple([plugin(a, instx) for instx in b])
 	elif not isinstance(b, Stmt):
 		return b
 	elif b.operator == '-':
-		p,q = subst(a,b.operands[0]),subst(a,b.operands[1])
+		p,q = plugin(a,b.operands[0]),plugin(a,b.operands[1])
 		if type(p) in (int,float) and type(q) in (int,float):
 			return p-q
 	elif b.operator == '+':
-		p,q = subst(a,b.operands[0]),subst(a,b.operands[1])
+		p,q = plugin(a,b.operands[0]),plugin(a,b.operands[1])
 		if type(p) in (int,float) and type(q) in (int,float):
 			return p+q
 	elif b.operator == '>':
-		p,q = subst(a,b.operands[0]),subst(a,b.operands[1])
+		p,q = plugin(a,b.operands[0]),plugin(a,b.operands[1])
 		if type(p) in (int,float) and type(q) in (int,float):
 			return p>q
-	elif IsVar(b.operator):
-		return a.get(b, b)
 	else:
 		if len(b.operands)==0 and b.operator in [str(x) for x in a.keys()]:
 			return a[Stmt(b.operator)]
-		return Stmt(b.operator, *[subst(a, oper) for oper in b.operands])
+		return Stmt(b.operator, *[plugin(a, oper) for oper in b.operands])
 	
 
 def OccurCheck(var, x, t):

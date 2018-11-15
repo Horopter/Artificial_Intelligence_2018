@@ -1,0 +1,15 @@
+Human(x) : x is a Human
+Pompeian(x) : x is a Pompeian
+Born(x,y) : x was born in y
+Mortal(x) : x is a Mortal
+Erupted(x,y) : x was erupted in y
+Dead(x,y) : x is dead as of y
+Now(x) : Current year is x
+Alive(x,y) : x is alive in y
+Died(x,y) : x died in y
+Roman(x) : x is a Roman
+Ruler(x) : x is a Ruler
+Loyal(x,y) : x is loyal to y
+Hate(x,y) : x hates y
+Person(x) : x is a Person
+TryAssassinate(x,y) : x tried to assassinate y

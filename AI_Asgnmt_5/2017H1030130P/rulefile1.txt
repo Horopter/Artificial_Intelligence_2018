@@ -1,0 +1,18 @@
+Human(Marcus)
+Pompeian(Marcus)
+Born(Marcus,40)
+For_every x : Human(x) -> Mortal(x)
+Erupted(Volcano,79)
+For_every x : Erupted(Volcano,79) and Pompeian(x) -> Died(x,79)
+For_every x For_every y For_every z : Mortal(x) and Born(x,y) and [z - y > 150] -> Dead(x,z)
+Now(2017)
+For_every x For_every y : Alive(x,y) -> [~Dead(x,y)]
+For_every x For_every y : Dead(x,y) -> [~Alive(x,y)]
+For_every x For_every y For_every z : Died(x,y) and [z > y] -> Dead(x,t2)
+For_every x : Pompeian(x) -> Roman(x)
+Ruler(Caesar)
+For_every x : Roman(x) -> Loyal(x,Caesar) or Hate(x,Caesar)
+For_every x There_exists y : Loyal(x,y)
+For_every x : Human(x) -> Person(x)
+For_every x For_every y : Person(x) and Ruler(y) and TryAssassinate(x,y) -> [~Loyal(x,y)]
+TryAssassinate(Marcus,Caesar)

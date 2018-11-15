@@ -1,0 +1,12 @@
+Neighbors(x,y) : x is a neighbor of y
+Stench(x) : stench at x
+Breeze(x) : breeze at x
+Wumpus(x) : wumpus at x
+Dangerous(x) : x is dangerous
+Visited(x) : x has been visited
+Unvisited(x) : x has been unvisited
+Pit(x) : pit at x
+Glitter(x) : glitter at x
+Gold(x) : gold at x
+Safe(x) : x is safe
+EndGame(x) : game finished at x

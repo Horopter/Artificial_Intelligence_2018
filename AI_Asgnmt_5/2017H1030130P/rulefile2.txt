@@ -1,0 +1,12 @@
+For_every x For_every y : Neighbors(x,y) -> Neighbors(y,x)
+For_every x For_every y : Stench(x) and Neighbor(y,x) and ~Visited(y) and Visited(x) -> Dangerous(y)
+For_every x For_every y : Breeze(x) and Neighbor(y,x) and ~Visited(y) and Visited(x) -> Dangerous(y)
+For_every x : Wumpus(x) -> EndGame(x)
+For_every x : Pit(x) -> EndGame(x)
+For_every x : Gold(x) -> EndGame(x)
+For_every x : Glitter(x) -> Gold(x)
+For_every x : Safe(x) -> [~Dangerous(x)]
+For_every x : Dangerous(x) -> [~Safe(x)]
+For_every x : Unvisited(x) -> [~Visited(x)]
+For_every x : Visited(x) -> [~Unvisited(x)]
+Safe(P00)

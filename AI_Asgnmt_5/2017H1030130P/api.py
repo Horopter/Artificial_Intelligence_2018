@@ -1,13 +1,20 @@
+#*************************************
+#Author : Santosh Kumar Desai
+#ID : 2017H1030130P
+#*************************************
+
 from helper import *
 from unification import *
 from itertools import product
 import random
 import abc
 
-A,B,C,x,y,t= map(Stmt, 'ABCxyt')
+F,x,y,t= map(Stmt, 'Fxyt')
 
 def CheckDefiniteClause(t):
-	if isinstance(t,bool):
+	if t == None:
+		return False
+	elif isinstance(t,bool):
 		return True
 	elif IsTerm(t.operator):
 		return True
@@ -15,7 +22,6 @@ def CheckDefiniteClause(t):
 		ante, cons = t.operands
 		return (IsTerm(cons.operator) and all(IsTerm(term.operator) for term in Expand('&',[ante]) if isinstance(term,Stmt)))
 	else:
-		#print "checkdc t val : ",t
 		return False
 
 def Parse(t):
@@ -94,7 +100,6 @@ def forward_chain(fol, A):
 	for q in fol.clauses:
 		Phi = Unify(q, A, {})
 		if Phi == {}:
-			print "Empty phi detected",q,A
 			yield True
 		if Phi != None:
 			yield Phi
@@ -103,26 +108,21 @@ def forward_chain(fol, A):
 		for rule in fol.clauses:
 			ante, cons = Parse(rule)
 			for T in substitute(ante):
-				conclusions = set(subst(T, ante))
-				# if str(T) == '{x: Marcus, y: 2017, t: 40}':
-				# print "T, ante : ",T,ante,conclusions,set(fol.clauses)
+				conclusions = set(plugin(T, ante))
 				if conclusions.issubset(set(fol.clauses)):
-					qDash = subst(T, cons)
+					qDash = plugin(T, cons)
 					if all([Unify(x, qDash, {}) is None for x in fol.clauses + new]):
 						if not set([False]).issubset(conclusions):
 							new.append(qDash)
 						Phi = Unify(qDash, A, {})
 						if Phi == {}:
 							if set([True]).issubset(conclusions):
-								print "True is subset."
 								yield True
 							if set([False]).issubset(conclusions):
-								yield False	
-							print "Empty phi"
+								yield False
 							yield True
 						if Phi != None:
 							yield Phi
-		# print "clauses ",fol.clauses
 		if not new:
 			if str(A) in [str(x) for x in fol.clauses]:
 				yield False

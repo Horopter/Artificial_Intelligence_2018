@@ -1,10 +1,15 @@
+#*************************************
+#Author : Santosh Kumar Desai
+#ID : 2017H1030130P
+#*************************************
+
 import keyword,re,collections
 
-def IsId(candidate):
-	is_not_keyword = candidate not in keyword.kwlist
+def IsId(id):
+	notKey = id not in keyword.kwlist
 	pattern = re.compile(r'^[a-z_][a-z0-9_]*$', re.I)
-	matches_pattern = bool(pattern.match(candidate))
-	return is_not_keyword and matches_pattern
+	isMatch = bool(pattern.match(id))
+	return notKey and isMatch
 
 def IsTerm(t):
 	return (isinstance(t, str) and t[0].isalpha()) or (t in ['~','>'])
@@ -14,8 +19,15 @@ def IsVar(x):
 	
 def Vars(t):
 	y = {x for x in statements(t) if IsVar(x)}
-	#print "Varsy : ",y
 	return y
+	
+def getTuple(t):
+	s = ','.join(t)
+	s = '('+s+')'
+	if s!='()':
+		return s
+	else:
+		return ''
 	
 def First(iterable, default=None):
 	try:
@@ -37,7 +49,7 @@ class Stmt(object):
 		if isinstance(r, (Stmt, int, float, complex)):
 			return Stmt('|', self, r)
 		else:
-			return Partial(r, self)
+			return Custom(r, self)
 	
 	def __invert__(self):
 		return Stmt('~', self)
@@ -66,7 +78,10 @@ class Stmt(object):
 		operator = self.operator
 		operands = [str(o) for o in self.operands]
 		if IsId(operator):
-			return '{}({})'.format(operator, ', '.join(operands)) if operands else operator
+			if operands:
+				return operator + getTuple(operands)
+			else:
+				return operator
 		elif len(operands) == 1:
 			return operator + operands[0]
 		else:
@@ -80,7 +95,7 @@ def statements(x):
 			for y in se:
 				yield y
 
-class Partial:
+class Custom:
 	def __init__(self, operator, f):
 		self.operator, self.f = operator, f
 
